@@ -5,11 +5,11 @@
 /src/core/                      @viethoang234-se
 /src/conflict/                  @viethoang234-se
 /src/pipeline/                  @viethoang234-se
-/src/algorithms/coloring/       @lekhang0610
-/src/algorithms/shortest-path/  @tahongphuc182007-cmyk
-/src/algorithms/routing/        @tahongphuc182007-cmyk
-/src/map/                       @tahongphuc182007-cmyk
-/scripts/osm/                   @tahongphuc182007-cmyk
-/src/ui/                        @KhaiNguyen54
-/src/data/                      @KhaiNguyen54 @minhhai010407-cyber
-/docs/                          @minhhai010407-cyber
+/src/algorithms/coloring/       @KhaiNguyen54
+/src/algorithms/shortest-path/  @minhhai010407-cyber
+/src/algorithms/routing/        @minhhai010407-cyber
+/src/map/                       @minhhai010407-cyber
+/scripts/osm/                   @minhhai010407-cyber
+/src/ui/                        @tahongphuc182007-cmyk
+/src/data/                      @tahongphuc182007-cmyk @lekhang0610
+/docs/                          @lekhang0610
