@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { hhmmToMin, minToHhmm, parseOrdersCsv, parseOrdersJson, ordersToCsv } from './io';
+import demo8 from '../data/demo-8.json?raw';
+import demo30 from '../data/demo-30.json?raw';
 
 const CSV = `id,lat,lng,start,end,serviceMin,category
 A,10.7725,106.698,08:00,09:30,5,thuong
@@ -54,5 +56,27 @@ describe('parseOrdersJson', () => {
   it('giờ kết thúc trước giờ bắt đầu thì báo lỗi', () => {
     const bad = [{ id: 'A', pos: { lat: 1, lng: 2 }, window: { start: 600, end: 500 }, serviceMin: 5, category: 'thuong' }];
     expect(() => parseOrdersJson(JSON.stringify(bad))).toThrow();
+  });
+});
+
+// Các test dưới đây thêm sau góp ý duyệt PR (không thuộc test mẫu trong sổ tay)
+describe('kiểm tra thêm sau khi duyệt', () => {
+  it('mã đơn có dấu phẩy thì báo lỗi, tránh làm lệch cột khi xuất CSV', () => {
+    const bad = [{ id: 'A,B', pos: { lat: 1, lng: 2 }, window: { start: 480, end: 540 }, serviceMin: 5, category: 'thuong' }];
+    expect(() => parseOrdersJson(JSON.stringify(bad))).toThrow('dấu phẩy');
+  });
+  it('mã đơn có ngoặc kép thì báo lỗi', () => {
+    expect(() => parseOrdersCsv(CSV.replace('A,10.7725', 'A"1,10.7725'))).toThrow();
+  });
+  it('tọa độ ngoài miền thì báo lỗi', () => {
+    expect(() => parseOrdersCsv(CSV.replace('10.7725', '95'))).toThrow('ngoài miền');
+    expect(() => parseOrdersCsv(CSV.replace('106.698', '200'))).toThrow('ngoài miền');
+  });
+  it('hai bộ dữ liệu demo đọc được, đúng số đơn và có thể xuất rồi đọc lại', () => {
+    const d8 = parseOrdersJson(demo8);
+    const d30 = parseOrdersJson(demo30);
+    expect(d8).toHaveLength(8);
+    expect(d30).toHaveLength(30);
+    expect(parseOrdersCsv(ordersToCsv(d30))).toEqual(d30);
   });
 });

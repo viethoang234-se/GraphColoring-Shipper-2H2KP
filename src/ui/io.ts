@@ -48,9 +48,15 @@ function checkOrder(raw: unknown, where: string): Order {
   const o = raw as RawOrder;
 
   if (typeof o.id !== 'string' || o.id.trim() === '') throw new Error(`${where}: thiếu mã đơn (id)`);
+  // Dấu phẩy, ngoặc kép, xuống dòng làm lệch cột khi xuất CSV nên không cho phép trong mã đơn
+  if (/[,"\r\n]/.test(o.id))
+    throw new Error(`${where}: mã đơn "${o.id}" không được chứa dấu phẩy, ngoặc kép hay xuống dòng`);
   const lat = o.pos?.lat;
   const lng = o.pos?.lng;
   if (!isNum(lat) || !isNum(lng)) throw new Error(`${where}: tọa độ lat/lng phải là số`);
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    throw new Error(`${where}: tọa độ (${lat}, ${lng}) ngoài miền (lat −90..90, lng −180..180)`);
+  }
   const start = o.window?.start;
   const end = o.window?.end;
   if (!isNum(start) || !isNum(end)) throw new Error(`${where}: giờ bắt đầu/kết thúc phải là số`);
@@ -71,8 +77,8 @@ export function parseOrdersJson(text: string): Order[] {
   let data: unknown;
   try {
     data = JSON.parse(text);
-  } catch {
-    throw new Error('File JSON sai cú pháp, không đọc được');
+  } catch (e) {
+    throw new Error('File JSON sai cú pháp, không đọc được', { cause: e }); // giữ lỗi gốc để dễ dò
   }
   if (!Array.isArray(data)) throw new Error('File JSON phải là một mảng các đơn hàng [ ... ]');
   return data.map((item, i) => checkOrder(item, `Đơn thứ ${i + 1}`));
@@ -102,7 +108,7 @@ export function parseOrdersCsv(text: string): Order[] {
       start = hhmmToMin(get('start'));
       end = hhmmToMin(get('end'));
     } catch (e) {
-      throw new Error(`${where}: ${(e as Error).message}`);
+      throw new Error(`${where}: ${(e as Error).message}`, { cause: e }); // giữ lỗi gốc để dễ dò
     }
 
     orders.push(
@@ -121,7 +127,11 @@ export function parseOrdersCsv(text: string): Order[] {
   return orders;
 }
 
-/** Ghi danh sách đơn ra CSV cùng định dạng, đọc lại phải ra y nguyên. */
+/**
+ * Ghi danh sách đơn ra CSV cùng định dạng, đọc lại phải ra y nguyên.
+ * Không ghi nodeId: trường này được tính lại khi ghép đơn vào bản đồ (T14).
+ * Mã đơn không chứa dấu phẩy (checkOrder đã chặn khi nạp) nên ghép bằng dấu phẩy là an toàn.
+ */
 export function ordersToCsv(orders: Order[]): string {
   const rows = orders.map((o) =>
     [o.id, o.pos.lat, o.pos.lng, minToHhmm(o.window.start), minToHhmm(o.window.end), o.serviceMin, o.category].join(

@@ -2,6 +2,15 @@ import { useState, type ChangeEvent } from 'react';
 import './App.css';
 import type { Order } from './core/types';
 import { ordersToCsv, parseOrdersCsv, parseOrdersJson } from './ui/io';
+// ?raw: Vite nạp nội dung file dưới dạng chuỗi, rồi đọc bằng parseOrdersJson như một file người dùng chọn
+import demo8 from './data/demo-8.json?raw';
+import demo30 from './data/demo-30.json?raw';
+
+/** Bộ dữ liệu có sẵn, chọn nhanh bằng nút trong thanh bên. */
+const DEMOS = [
+  { label: 'Demo 8 đơn', text: demo8 },
+  { label: 'Demo 30 đơn', text: demo30 },
+];
 
 type Tab = 'map' | 'conflict' | 'schedule' | 'compare';
 
@@ -32,13 +41,23 @@ export default function App() {
     }
   }
 
-  // Xuất CSV: tạo file tạm trong trình duyệt rồi tải về
-  function handleExport() {
-    const blob = new Blob([ordersToCsv(orders)], { type: 'text/csv;charset=utf-8' });
+  // Nạp một bộ dữ liệu có sẵn
+  function loadDemo(text: string) {
+    try {
+      setOrders(parseOrdersJson(text));
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  // Tải về một file: tạo file tạm trong trình duyệt rồi bấm link tải
+  function download(content: string, fileName: string, type: string) {
+    const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'don-hang.csv';
+    a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -54,11 +73,29 @@ export default function App() {
           <br />
           <input type="file" accept=".csv,.json" onChange={handleFile} />
         </label>
-        {loadError && <p style={{ color: '#d32f2f' }}>{loadError}</p>}
+        <div className="demo-buttons">
+          {DEMOS.map((d) => (
+            <button key={d.label} onClick={() => loadDemo(d.text)}>
+              {d.label}
+            </button>
+          ))}
+        </div>
+        {loadError && <p className="error">{loadError}</p>}
         <p>Đã nạp {orders.length} đơn</p>
-        <button onClick={handleExport} disabled={orders.length === 0}>
-          Xuất CSV
-        </button>
+        <div className="demo-buttons">
+          <button
+            onClick={() => download(ordersToCsv(orders), 'don-hang.csv', 'text/csv;charset=utf-8')}
+            disabled={orders.length === 0}
+          >
+            Xuất CSV
+          </button>
+          <button
+            onClick={() => download(JSON.stringify(orders, null, 2), 'don-hang.json', 'application/json')}
+            disabled={orders.length === 0}
+          >
+            Xuất JSON
+          </button>
+        </div>
 
         {/* Việc 6: chọn thuật toán, nút Chạy, tóm tắt kết quả */}
       </aside>

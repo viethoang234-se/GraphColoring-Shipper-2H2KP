@@ -23,6 +23,19 @@
   margin: 0 0 16px;
 }
 
+/* Câu báo lỗi khi nạp file sai (T24) */
+.panel .error {
+  color: #d32f2f;
+}
+
+/* Hàng nút trong thanh bên: chọn nhanh dữ liệu demo, xuất file (T24) */
+.demo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
 /* ---------- Phần nội dung bên phải ---------- */
 .content {
   flex: 1; /* chiếm hết phần còn lại sau khi trừ 300px của thanh bên */
