@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react';
 import './App.css';
-import type { Order } from './core/types';
+import type { ConflictGraph, Order } from './core/types';
+import { ConflictGraphView } from './ui/ConflictGraphView';
 import { ordersToCsv, parseOrdersCsv, parseOrdersJson } from './ui/io';
 // ?raw: Vite nạp nội dung file dưới dạng chuỗi, rồi đọc bằng parseOrdersJson như một file người dùng chọn
 import demo8 from './data/demo-8.json?raw';
@@ -11,6 +12,26 @@ const DEMOS = [
   { label: 'Demo 8 đơn', text: demo8 },
   { label: 'Demo 30 đơn', text: demo30 },
 ];
+
+// Dữ liệu giả cho T22 (theo sổ tay): chu trình 5 đỉnh 0-1-2-3-4-0. Sẽ thay bằng kết quả runPipeline ở Việc 6.
+const FAKE_GRAPH: ConflictGraph = {
+  adj: [
+    [1, 4],
+    [0, 2],
+    [1, 3],
+    [2, 4],
+    [3, 0],
+  ],
+  reasons: {
+    '0-1': ['thoi-gian'],
+    '1-2': ['khoang-cach'],
+    '2-3': ['loai-hang'],
+    '3-4': ['thoi-gian', 'khoang-cach'],
+    '0-4': ['loai-hang'],
+  },
+};
+const FAKE_LABELS = ['A', 'B', 'C', 'D', 'E'];
+const FAKE_COLORS = [0, 1, 0, 1, 2];
 
 type Tab = 'map' | 'conflict' | 'schedule' | 'compare';
 
@@ -108,7 +129,7 @@ export default function App() {
           ))}
         </nav>
         {tab === 'map' && <p>Bản đồ (TV3 làm ở T21)</p>}
-        {tab === 'conflict' && <p>Đồ thị xung đột (T22)</p>}
+        {tab === 'conflict' && <ConflictGraphView graph={FAKE_GRAPH} labels={FAKE_LABELS} colors={FAKE_COLORS} />}
         {tab === 'schedule' && <p>Lịch trình (T23)</p>}
         {tab === 'compare' && <p>So sánh thuật toán (T27)</p>}
       </main>
